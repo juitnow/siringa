@@ -46,6 +46,48 @@ describe('Injector', () => {
     expect(bar._s).to.equal(s1)
   })
 
+  it('should inject a component without binding it', async () => {
+    const instance = await new Injector()
+        .bind(Foo)
+        .bind('foo', Foo)
+        .inject(class {
+          static $inject = [ Foo, 'foo' ] as const
+          constructor(public _c: Foo, public _s: Foo) {}
+        })
+
+    expect(instance._c.count).to.equal(1)
+    expect(instance._s.count).to.equal(2)
+  })
+
+  it('should bind some components', async () => {
+    const injector = new Injector()
+        .bind(Foo)
+        .bind('foo', Foo)
+        .bind('bar', class {
+          static $inject = [ Foo, 'foo' ] as const
+          constructor(public _c: Foo, public _s: Foo) {}
+        })
+
+    const c1 = await injector.get(Foo)
+    expect(c1.count).to.equal(1)
+
+    const s1 = await injector.get('foo')
+    expect(s1.count).to.equal(2)
+
+    const c2 = await injector.get(Foo)
+    const s2 = await injector.get('foo')
+
+    expect(c2.count).to.equal(1)
+    expect(s2.count).to.equal(2)
+
+    expect(c2).to.equal(c1)
+    expect(s2).to.equal(s1)
+
+    const bar = await injector.get('bar')
+    expect(bar._c).to.equal(c1)
+    expect(bar._s).to.equal(s1)
+  })
+
   it('should use a factory to instantiate injectables', async () => {
     const injector = new Injector()
         .create(Foo, () => new Foo())
@@ -134,6 +176,19 @@ describe('Injector', () => {
     expect(x.c).to.equal(c)
     expect(x.s).to.equal(s)
     expect(x.i.count).to.equal(3)
+  })
+
+  it('should fail when recursively resolving the same binding', async () => {
+    await expect(new Injector()
+        .create('foo', async (injections) => {
+          await (<any> injections).get('foo')
+        }).get('foo')).to.be.rejectedWith('Recursion detected injecting "foo"')
+
+    await expect(new Injector()
+        .create(Foo, async (injections) => {
+          await (<any> injections).get(Foo)
+          return <any> null
+        }).get(Foo)).to.be.rejectedWith('Recursion detected injecting [class Foo]')
   })
 
   it('should give us nice erros', async () => {

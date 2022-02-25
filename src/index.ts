@@ -133,6 +133,10 @@ type InjectionType<
       Provisions[B] :
     never
 
+function bindingName(binding: Constructor | string): string {
+  return typeof binding === 'function' ? `[class ${binding.name}]` : `"${binding}"`
+}
+
 /* ========================================================================== *
  * EXPORTED TYPES                                                             *
  * ========================================================================== */
@@ -143,7 +147,7 @@ export interface Injectable<
   Provisions extends Record<string, any>,
   T = any,
   Injections extends readonly (Components | keyof Provisions)[] = readonly (Components | keyof Provisions)[],
-> extends Constructor<T> {
+> {
   prototype: T
   new (...args: any): T
   $inject?: Injections
@@ -188,8 +192,38 @@ export class Injector<
   Components extends Constructor = never,
   Provisions extends Record<string, any> = {},
 > implements Injections<Components, Provisions> {
-  readonly #factories: Map<any, Factory<Components, Provisions>> = new Map()
+  readonly #factories: Map<any, (stack: any[]) => Promise<any>> = new Map()
   readonly #promises: Map<any, Promise<any>> = new Map()
+
+  /* INTERNALS ============================================================== */
+
+  async #get(binding: any, stack: any[]): Promise<any> {
+    if (stack.includes(binding)) {
+      const message = `Recursion detected injecting ${bindingName(binding)}`
+      return Promise.reject(new Error(message))
+    }
+
+    const promise = this.#promises.get(binding)
+    if (promise) return promise
+
+    const factory = this.#factories.get(binding)
+    if (factory) {
+      const promise = Promise.resolve().then(() => factory([ ...stack, binding ]))
+      this.#promises.set(binding, promise)
+      return promise
+    }
+
+    const message = `Unable to resolve binding ${bindingName(binding)}`
+    return Promise.reject(new Error(message))
+  }
+
+  async #inject(injectable: Injectable<Components, Provisions>, stack: any[]): Promise<any> {
+    const promises = injectable.$inject?.map((binding: any) => this.#get(binding, stack))
+    const injections = promises ? await Promise.all(promises) : []
+
+    // eslint-disable-next-line new-cap
+    return new injectable(...injections)
+  }
 
   /* BINDING ================================================================ */
 
@@ -218,7 +252,7 @@ export class Injector<
     const injectable = maybeInjectable ? maybeInjectable :
         binding as Injectable<Components, Provisions>
 
-    this.#factories.set(binding, () => this.inject(injectable))
+    this.#factories.set(binding, async (stack) => this.#inject(injectable, stack))
     return this
   }
 
@@ -238,7 +272,14 @@ export class Injector<
     binding: Constructor | string,
     factory: Factory<Components, Provisions>,
   ): this {
-    this.#factories.set(binding, factory)
+    this.#factories.set(binding, async (stack) => {
+      const instance = factory({
+        get: (component: any) => this.#get(component, stack),
+        inject: async (injectable: any) => this.#inject(injectable, stack),
+      })
+      return instance
+    })
+
     return this
   }
 
@@ -264,27 +305,10 @@ export class Injector<
 
   /* INSTANCES ============================================================== */
 
-  get<B extends Components | keyof Provisions>(
+  async get<B extends Components | keyof Provisions>(
     binding: B,
   ): Promise<InjectionType<Components, Provisions, B>> {
-    const promise = this.#promises.get(binding)
-    if (promise) return promise
-
-    const factory = this.#factories.get(binding)
-    if (factory) {
-      const injections: Injections<Components, Provisions> = {
-        get: (component: any) => this.get(component),
-        inject: (injectable: any) => this.inject(injectable),
-      }
-      const promise = Promise.resolve().then(() => factory(injections))
-      this.#promises.set(binding, promise)
-      return promise
-    }
-
-    const injection = typeof binding === 'function' ?
-        `[class ${binding.name}]` : `"${binding}"`
-    const error = new Error(`Unable to resolve binding ${injection}`)
-    return Promise.reject(error)
+    return this.#get(binding, [])
   }
 
   /**
@@ -296,10 +320,6 @@ export class Injector<
   async inject<I extends Injectable<Components, Provisions>>(
     injectable: I & CheckInjectable<I, Components, Provisions>,
   ): Promise<InstanceType<I>> {
-    const promises = injectable.$inject?.map((binding) => this.get(binding))
-    const injections = promises ? await Promise.all(promises) : []
-
-    // eslint-disable-next-line new-cap
-    return new injectable(...injections)
+    return this.#inject(injectable, [])
   }
 }
