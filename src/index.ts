@@ -143,19 +143,21 @@ export interface Injectable<
 
 /**
  * The `Injections` interface abstracts the idea of getting bound and
- * provisioned instances from an `Injector`.
+ * provisioned instances from an `Injector`, injecting new `Injectable`
+ * instances, and creating sub-`Injector`s.
  */
 export interface Injections<
   Components extends Constructor,
   Provisions extends Record<string, any>,
 > {
-  /** Get a _bound_ instance from an `Injector` */
+  /** Get a _bound_ instance from an `Injector`. */
   get<C extends Components>(component: C): Promise<InstanceType<C>>
-  /** Get a _provisioned_ instance from an `Injector` */
+
+  /** Get a _provisioned_ instance from an `Injector`. */
   get<P extends keyof Provisions>(provision: P): Promise<Provisions[P]>
 
   /**
-   * Create a new instance of the specified `Injectable`, providing all
+   * Create a new instance of the specified `Injectable`, providing it with all
    * necessary injections.
    *
    * @param injectable The constructor of the instance to create.
@@ -163,11 +165,14 @@ export interface Injections<
   inject<I extends Injectable<Components, Provisions>>(
     injectable: I & CheckInjectable<I, Components, Provisions>,
   ): Promise<InstanceType<I>>
+
+  /** Create a sub-`Injector` child of the current one. */
+  injector(): Injector<Components, Provisions>
 }
 
 /** A `Factory` is a _function_ creating instances of a given type. */
 export type Factory<
-  Components extends Constructor = Constructor<any>,
+  Components extends Constructor = Constructor,
   Provisions extends Record<string, any> = Record<string, any>,
   T = any,
 > = (injections: Injections<Components, Provisions>) => T | Promise<T>
@@ -180,13 +185,15 @@ export class Injector<
   Components extends Constructor = never,
   Provisions extends Record<string, any> = {},
 > implements Injections<Components, Provisions> {
-  readonly #factories: Map<Binding, (stack: any[]) => Promise<any>> = new Map()
+  readonly #factories: Map<Binding, (stack: Binding[]) => Promise<any>> = new Map()
   readonly #promises: Map<Binding, Promise<any>> = new Map()
+  #parent?: Injector<Constructor, Record<string, any>>
 
   /* INTERNALS ============================================================== */
 
   async #get(binding: Binding, stack: Binding[]): Promise<any> {
     if (stack.includes(binding)) {
+      if (this.#parent) return this.#parent.#get(binding, [])
       const message = `Recursion detected injecting ${bindingName(binding)}`
       return Promise.reject(new Error(message))
     }
@@ -201,11 +208,13 @@ export class Injector<
       return promise
     }
 
+    if (this.#parent) return this.#parent.#get(binding, [])
+
     const message = `Unable to resolve binding ${bindingName(binding)}`
     return Promise.reject(new Error(message))
   }
 
-  async #inject(injectable: Injectable<Components, Provisions>, stack: any[]): Promise<any> {
+  async #inject(injectable: Injectable<Components, Provisions>, stack: Binding[]): Promise<any> {
     const promises = injectable.$inject?.map((binding: any) => this.#get(binding, stack))
     const injections = promises ? await Promise.all(promises) : []
 
@@ -246,11 +255,13 @@ export class Injector<
 
   /* FACTORIES ============================================================== */
 
+  /** Use a `Factory` to create instances bound to the given `Constructor`. */
   create<C extends Constructor>(
     component: C,
     factory: Factory<Components, Provisions, InstanceType<C>>,
   ): Injector<Components | C, Provisions>
 
+  /** Use a `Factory` to create instances bound to the given name. */
   create<P extends string, F extends Factory<Components, Provisions>>(
     provision: P,
     factory: F,
@@ -261,24 +272,24 @@ export class Injector<
     binding: Binding,
     factory: Factory<Components, Provisions>,
   ): this {
-    this.#factories.set(binding, async (stack) => {
-      const instance = factory({
-        get: (component: any) => this.#get(component, stack),
-        inject: async (injectable: any) => this.#inject(injectable, stack),
-      })
-      return instance
-    })
+    this.#factories.set(binding, async (stack) => factory({
+      get: (component: any) => this.#get(component, stack),
+      inject: async (injectable: any) => this.#inject(injectable, stack),
+      injector: () => this.injector(),
+    }))
 
     return this
   }
 
   /* INSTANCES ============================================================== */
 
+  /** Use the given instance binding it to to the given `Constructor`. */
   use<C extends Constructor>(
     component: C,
     instance: InstanceType<C>,
   ): Injector<Components | C, Provisions>
 
+  /** Use the given instance binding it to to the given name. */
   use<P extends string, T>(
     provision: P,
     instance: T,
@@ -301,6 +312,7 @@ export class Injector<
   /** Get a _provisioned_ instance from an `Injector` */
   get<P extends keyof Provisions>(provision: P): Promise<Provisions[P]>
 
+  // Overloaded implementation
   async get<B extends Binding>(
     binding: B,
   ): Promise<any> {
@@ -317,5 +329,14 @@ export class Injector<
     injectable: I & CheckInjectable<I, Components, Provisions>,
   ): Promise<InstanceType<I>> {
     return this.#inject(injectable, [])
+  }
+
+  /* CHILD INJECTORS ======================================================== */
+
+  /** Create a sub-`Injector` child of this one. */
+  injector(): Injector<Components, Provisions> {
+    const injector = new Injector<Components, Provisions>()
+    injector.#parent = this
+    return injector
   }
 }
