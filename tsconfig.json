@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": [ "esnext" ],
+    "types": [ "node" ],
+    "target": "esnext",
+    "noImplicitAny": true,
+    "outDir": "./build/types",
+    "rootDir": "src",
+    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": false,
+  },
+  "include": [ "src" ],
+}
