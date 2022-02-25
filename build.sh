@@ -10,6 +10,7 @@ mkdir -p build dist
 
 # Check types and generate .d.ts files
 tsc
+cp build/types/index.d.ts index.d.ts
 
 # Prep sources and tests
 esbuild --format=cjs build.ts | node -
