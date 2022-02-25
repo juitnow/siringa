@@ -16,8 +16,8 @@ decorator metadata.
 * [API Reference](#api-reference)
   * [`class Injector`](#class-injector)
   * [`interface Injections`](#interface-injections)
-* [Copyright Notice](NOTICE.md)
-* [License](LICENSE.md)
+* [Copyright Notice](https://github.com/juitnow/siringa/blob/main/NOTICE.md)
+* [License](https://github.com/juitnow/siringa/blob/main/LICENSE.md)
 
 Quick Start
 -----------
@@ -283,7 +283,7 @@ annotated with _JSDoc_).
 * `injections.injector(): Injector` \
   Create a sub-injector (child) of the current one
 
-### `class Injections`
+### `interface Injections`
 
 * `injections.get(component: Constructor): Instance` \
   Returns the instance bound to the specified constructor (a _class_)
