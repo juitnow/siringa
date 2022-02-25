@@ -14,6 +14,8 @@ decorator metadata.
 * [Using Instances](#using-instances)
 * [Child Injectors](#child-injectors)
 * [API Reference](#api-reference)
+  * [`class Injector`](#class-injector)
+  * [`interface Injections`](#interface-injections)
 * [Copyright Notice](NOTICE.md)
 * [License](LICENSE.md)
 
@@ -157,7 +159,7 @@ bar.bar()
 As in the example above, factory methods will be given an `Injections` instance
 which can be used to get instances, inject new objects, or create sub-injectors.
 
-See the reference for [`Injections`](#class-injections) below.
+See the reference for [`Injections`](#interface-injections) below.
 
 Using Instances
 ---------------
