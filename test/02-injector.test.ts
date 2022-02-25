@@ -191,6 +191,66 @@ describe('Injector', () => {
         }).get(Foo)).to.be.rejectedWith('Recursion detected injecting [class Foo]')
   })
 
+  it('should successfully use parent injectors', async () => {
+    const parent = new Injector().use('test', 'parent').bind(Foo)
+    const child = parent.injector()
+        .use('foo', 'bar')
+        .create(Foo, async (injections) => {
+          const instance = await injections.get(Foo)
+          expect(instance.count).to.equal(1)
+
+          const string = await injections.get('foo')
+          expect(string).to.equal('bar')
+
+          return new Foo()
+        })
+
+    const childInstance = await child.get(Foo)
+    expect(childInstance.count).to.equal(2)
+
+    expect(await child.get('foo')).to.equal('bar')
+    expect(await child.get('test')).to.equal('parent')
+
+    const parentInstance = await parent.get(Foo)
+    expect(parentInstance.count).to.equal(1)
+
+    await expect(parent.get(<any> 'foo'))
+        .to.be.rejectedWith('Unable to resolve binding "foo"')
+    expect(await parent.get('test')).to.equal('parent')
+  })
+
+  it('should successfully override a parent injector binding', async () => {
+    const parent = new Injector().bind(Foo)
+    const child = parent.injector().bind(Foo)
+
+    const childInstance = await child.get(Foo)
+    expect(childInstance.count).to.equal(1)
+
+    const parentInstance = await parent.get(Foo)
+    expect(parentInstance.count).to.equal(2)
+  })
+
+  it('should successfully construct child injectors', async () => {
+    let child: Injector<typeof Foo, { foo: string, test: string }> | undefined
+    const parent = new Injector().use('test', 'parent').create(Foo, (injections) => {
+      child = injections.injector().use('foo', 'bar').bind(Foo)
+      return new Foo()
+    })
+
+    const parentInstance = await parent.get(Foo)
+    expect(parentInstance.count).to.equal(1)
+
+    await expect(parent.get(<any> 'foo'))
+        .to.be.rejectedWith('Unable to resolve binding "foo"')
+    expect(await parent.get('test')).to.equal('parent')
+
+    const childInstance = await child?.get(Foo)
+    expect(childInstance?.count).to.equal(2)
+
+    expect(await child?.get('foo')).to.equal('bar')
+    expect(await child?.get('test')).to.equal('parent')
+  })
+
   it('should give us nice erros', async () => {
     const injector = new Injector<any, any>()
 
