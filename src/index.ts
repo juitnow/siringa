@@ -120,20 +120,9 @@ type ExtendProvisions<
 
 /* ========================================================================== */
 
-/**
- * The type of an injection
- */
-type InjectionType<
-  Components extends Constructor,
-  Provisions extends Record<string, any>,
-  B extends Components | keyof Provisions,
-> = B extends Components ?
-      InstanceType<B> :
-    B extends keyof Provisions ?
-      Provisions[B] :
-    never
+type Binding = Constructor | string
 
-function bindingName(binding: Constructor | string): string {
+function bindingName(binding: Binding): string {
   return typeof binding === 'function' ? `[class ${binding.name}]` : `"${binding}"`
 }
 
@@ -146,11 +135,10 @@ export interface Injectable<
   Components extends Constructor,
   Provisions extends Record<string, any>,
   T = any,
-  Injections extends readonly (Components | keyof Provisions)[] = readonly (Components | keyof Provisions)[],
 > {
   prototype: T
   new (...args: any): T
-  $inject?: Injections
+  $inject?: readonly (Components | keyof Provisions)[]
 }
 
 /**
@@ -192,12 +180,12 @@ export class Injector<
   Components extends Constructor = never,
   Provisions extends Record<string, any> = {},
 > implements Injections<Components, Provisions> {
-  readonly #factories: Map<any, (stack: any[]) => Promise<any>> = new Map()
-  readonly #promises: Map<any, Promise<any>> = new Map()
+  readonly #factories: Map<Binding, (stack: any[]) => Promise<any>> = new Map()
+  readonly #promises: Map<Binding, Promise<any>> = new Map()
 
   /* INTERNALS ============================================================== */
 
-  async #get(binding: any, stack: any[]): Promise<any> {
+  async #get(binding: Binding, stack: Binding[]): Promise<any> {
     if (stack.includes(binding)) {
       const message = `Recursion detected injecting ${bindingName(binding)}`
       return Promise.reject(new Error(message))
@@ -246,7 +234,7 @@ export class Injector<
 
   // Overloaded implementation
   bind(
-    binding: Constructor | string,
+    binding: Binding,
     maybeInjectable?: Injectable<Components, Provisions>,
   ): this {
     const injectable = maybeInjectable ? maybeInjectable :
@@ -268,8 +256,9 @@ export class Injector<
     factory: F,
   ): Injector<Components, ExtendProvisions<Provisions, P, ReturnType<F>>>
 
+  // Overloaded implementation
   create(
-    binding: Constructor | string,
+    binding: Binding,
     factory: Factory<Components, Provisions>,
   ): this {
     this.#factories.set(binding, async (stack) => {
@@ -295,19 +284,26 @@ export class Injector<
     instance: T,
   ): Injector<Components, ExtendProvisions<Provisions, P, T>>
 
+  // Overloaded implementation
   use(
-    binding: Constructor | string,
+    binding: Binding,
     instance: any,
-  ): Injector<any, any> {
+  ): this {
     this.#promises.set(binding, Promise.resolve(instance))
     return this
   }
 
   /* INSTANCES ============================================================== */
 
-  async get<B extends Components | keyof Provisions>(
+  /** Get a _bound_ instance from an `Injector` */
+  get<C extends Components>(component: C): Promise<InstanceType<C>>
+
+  /** Get a _provisioned_ instance from an `Injector` */
+  get<P extends keyof Provisions>(provision: P): Promise<Provisions[P]>
+
+  async get<B extends Binding>(
     binding: B,
-  ): Promise<InjectionType<Components, Provisions, B>> {
+  ): Promise<any> {
     return this.#get(binding, [])
   }
 
