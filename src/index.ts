@@ -1,6 +1,22 @@
 /** A generic constructor */
 type Constructor<T = any> = abstract new (...args: any) => T
 
+/** The _type_ for a binding, either a `Constructor` or a `string`. */
+type Binding = Constructor | string
+
+/** The _type_ of a binding in the context of an `Injector`. */
+type InjectorBinding<
+  Components extends Constructor,
+  Provisions extends Record<string, any>,
+> = Components | (keyof Provisions & string) | PromisedBinding<Components | (keyof Provisions & string)>
+
+/** A tuple of `InjectorBinding`s (what's needed by `$inject`). */
+type InjectTuple<
+  Components extends Constructor,
+  Provisions extends Record<string, any>,
+> = readonly [ InjectorBinding<Components, Provisions>, ...(InjectorBinding<Components, Provisions>)[] ]
+
+
 /* ========================================================================== */
 
 /**
@@ -19,6 +35,12 @@ type CheckInject<
   // if "$inject" is a single-element tuple, check that that this element is
   // actually included in the list of components
   Inject extends readonly [ infer I1 ] ?
+    I1 extends PromisedBinding<infer I2> ?
+      I2 extends keyof Provisions ?
+        readonly [ PromisedBinding<I2> ] :
+      I2 extends Extract<Components, I2> ?
+        readonly [ PromisedBinding<I2> ] :
+      readonly [ PromisedBinding<never> ] :
     I1 extends keyof Provisions ?
       readonly [ I1 ] :
     I1 extends Extract<Components, I1> ?
@@ -53,6 +75,14 @@ type MapInject<
 
   // "$inject" is a single-element tuple
   Inject extends readonly [ infer I1 ] ?
+    I1 extends PromisedBinding<infer I2> ?
+      // promised bindings
+      I2 extends keyof Provisions ?
+        readonly [ Promise<Provisions[I2]> ] :
+      I2 extends Constructor ?
+        readonly [ Promise<InstanceType<I2>> ] :
+      readonly [ never ] :
+    // resolved (non promised) bindings
     I1 extends keyof Provisions ?
       readonly [ Provisions[I1] ] :
     I1 extends Constructor ?
@@ -93,7 +123,7 @@ type CheckInjectable<
     I :
 
   // Anything else requires "$inject" to be present
-  { $inject: readonly [ Components | keyof Provisions, ...(Components | keyof Provisions)[] ] }
+  { $inject: InjectTuple<Components, Provisions> }
 
 /* ========================================================================== */
 
@@ -118,17 +148,28 @@ type ExtendProvisions<
       Provisions[key]
 }
 
-/* ========================================================================== */
+/* ========================================================================== *
+ * EXPORTED TYPES                                                             *
+ * ========================================================================== */
 
-type Binding = Constructor | string
-
+/** Utility to nicely print a binding name */
 function bindingName(binding: Binding): string {
   return typeof binding === 'function' ? `[class ${binding.name}]` : `"${binding}"`
 }
 
-/* ========================================================================== *
- * EXPORTED TYPES                                                             *
- * ========================================================================== */
+/** A constant symbol identifying a _promised binding_. */
+const promisedBinding = Symbol.for('siringa.promisedBinding')
+
+/** Declare a _binding_ to be _promised_ (inject its `Promise`). */
+export function promise<B extends Binding>(binding: B): PromisedBinding<B> {
+  return { [promisedBinding]: binding }
+}
+
+/* ========================================================================== */
+
+export interface PromisedBinding<B extends Binding = Binding> {
+  [promisedBinding]: B
+}
 
 /** An `Injectable` defines a constructor for an injectable class */
 export interface Injectable<
@@ -138,7 +179,7 @@ export interface Injectable<
 > {
   prototype: T
   new (...args: any): T
-  $inject?: readonly (Components | keyof Provisions)[]
+  $inject?: InjectTuple<Components, Provisions>
 }
 
 /**
@@ -215,8 +256,19 @@ export class Injector<
   }
 
   async #inject(injectable: Injectable<Components, Provisions>, stack: Binding[]): Promise<any> {
-    const promises = injectable.$inject?.map((binding: any) => this.#get(binding, stack))
-    const injections = promises ? await Promise.all(promises) : []
+    const promises = injectable.$inject?.map((binding: Binding | PromisedBinding) => {
+      switch (typeof binding) {
+        case 'string':
+        case 'function':
+          return this.#get(binding, stack)
+        default:
+          return binding
+      }
+    })
+
+    const injections = promises ? (await Promise.all(promises)).map((i) => {
+      return promisedBinding in i ? this.#get(i[promisedBinding], stack) : i
+    }) : []
 
     // eslint-disable-next-line new-cap
     return new injectable(...injections)
@@ -286,13 +338,13 @@ export class Injector<
   /** Use the given instance binding it to to the given `Constructor`. */
   use<C extends Constructor>(
     component: C,
-    instance: InstanceType<C>,
+    instance: InstanceType<C> | PromiseLike<InstanceType<C>>,
   ): Injector<Components | C, Provisions>
 
   /** Use the given instance binding it to to the given name. */
   use<P extends string, T>(
     provision: P,
-    instance: T,
+    instance: T | PromiseLike<T>,
   ): Injector<Components, ExtendProvisions<Provisions, P, T>>
 
   // Overloaded implementation
