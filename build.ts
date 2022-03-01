@@ -47,6 +47,7 @@ async function main() {
   await build({
     outfile: 'build/src/index.js',
     entryPoints: [ './src/index.ts' ],
+    sourcemap: 'inline',
   })
 
   const tests = (await fs.promises.readdir('test')).map((file) => {
