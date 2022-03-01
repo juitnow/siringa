@@ -10,6 +10,7 @@ decorator metadata.
 * [Quick Start](#quick-start)
 * [One-Time Injection](#one-time-injection)
 * [Name-based Injection](#name-based-injection)
+* [Promises Injection](#promises-injection)
 * [Using Factories](#using-factories)
 * [Using Instances](#using-instances)
 * [Child Injectors](#child-injectors)
@@ -114,6 +115,40 @@ const injector = new Injector()
 const bar = await injector.get('bar')
 // Get the singleton instance of "Foo"
 const foo = await injector.get('foo')
+```
+
+Promises Injection
+------------------
+
+Sometimes it might be necessary to be injected a `Promise` of a component,
+rather than a component itself.
+
+For example, in an _Lambda Function_ we might want to asynchronously use other
+services (retrieve secrets, connect to databases, ...) while starting to process
+a request.
+
+In this case we can request to be injected a (yet unresolved) `Promise` of a
+bound component:
+
+```ts
+import { promise } from 'siringa'
+
+class Foo {
+  foo() { /* ... your code... */ }
+}
+
+class Bar {
+  // The `promise(...)` function declares the injection of a `Promise`
+  static $inject = [ promise(Foo) ] as const
+
+  // Called by the injector with the correct `Promise` for dependencies
+  constructor(private _foo: Promise<Foo>) {}
+
+  // Your code
+  bar() {
+    await (this._foo).bar()
+  }
+}
 ```
 
 Using Factories
