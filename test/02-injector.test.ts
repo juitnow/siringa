@@ -1,4 +1,4 @@
-import { Injector } from '../src/index'
+import { Injector, promise } from '../src/index'
 import chai, { expect } from 'chai'
 import chap from 'chai-as-promised'
 
@@ -176,6 +176,76 @@ describe('Injector', () => {
     expect(x.c).to.equal(c)
     expect(x.s).to.equal(s)
     expect(x.i.count).to.equal(3)
+  })
+
+  it('should inject promised bindings', async () => {
+    const calls: string[] = []
+
+    const injectedPromise = new Injector()
+        .use(Foo, new Promise<Foo>((resolve) => {
+          setTimeout(() => {
+            calls.push('resolve')
+            resolve(new Foo())
+          }, 50)
+        }))
+        .inject(class {
+          static $inject = [ promise(Foo) ] as const
+          constructor(public foo: Promise<Foo>) {
+            calls.push('construct')
+            expect(foo).to.be.a('promise')
+          }
+        })
+
+    calls.push('injecting')
+    const injected = await injectedPromise
+
+    calls.push('injected')
+    expect(injected.foo).to.be.a('promise')
+
+    const foo = await injected.foo
+    expect(foo).to.be.instanceOf(Foo).eql({ count: 1 })
+
+    expect(calls).to.eql([
+      'injecting',
+      'construct',
+      'injected',
+      'resolve',
+    ])
+  })
+
+  it('should inject promised named bindings', async () => {
+    const calls: string[] = []
+
+    const injectedPromise = new Injector()
+        .use('test', new Promise<Foo>((resolve) => {
+          setTimeout(() => {
+            calls.push('resolve')
+            resolve(new Foo())
+          }, 50)
+        }))
+        .inject(class {
+          static $inject = [ promise('test') ] as const
+          constructor(public foo: Promise<Foo>) {
+            calls.push('construct')
+            expect(foo).to.be.a('promise')
+          }
+        })
+
+    calls.push('injecting')
+    const injected = await injectedPromise
+
+    calls.push('injected')
+    expect(injected.foo).to.be.a('promise')
+
+    const foo = await injected.foo
+    expect(foo).to.be.instanceOf(Foo).eql({ count: 1 })
+
+    expect(calls).to.eql([
+      'injecting',
+      'construct',
+      'injected',
+      'resolve',
+    ])
   })
 
   it('should fail when recursively resolving the same binding', async () => {
