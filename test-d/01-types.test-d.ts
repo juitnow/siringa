@@ -1,5 +1,5 @@
 import { expectError, expectType, printType } from 'tsd'
-import { Injector, Injections } from '../src'
+import { Injector, Injections, promise } from '../src'
 
 printType('__file_marker__')
 
@@ -153,6 +153,54 @@ expectError(new Injector().bind(Foo1).inject(class {
   constructor(private _fooX: FooX) {}
 })) // negative test #2
 
+// promised bindings
+
+new Injector().bind(Foo1).bind(class {
+  static $inject = [ promise(Foo1) ] as const
+  constructor(private _foo1: Promise<Foo1>) {}
+}) // positive test #1
+
+new Injector().bind(FooX).bind(class {
+  static $inject = [ promise(FooX) ] as const
+  constructor(private _fooX: Promise<FooX>) {}
+}) // positive test #2
+
+// our class requires Foo1: even if FooX extends Foo1 this should not match
+expectError(new Injector().bind(FooX).bind(class {
+  static $inject = [ promise(Foo1) ] as const
+  constructor(private _foo1: Promise<Foo1>) {}
+})) // negative test #1
+
+// our class requires FooX: Foo1 is a superclass, therefore not assignable
+expectError(new Injector().bind(Foo1).bind(class {
+  static $inject = [ promise(FooX) ] as const
+  constructor(private _fooX: Promise<FooX>) {}
+})) // negative test #2
+
+// promised bindings with "inject()"
+
+await new Injector().bind(Foo1).inject(class {
+  static $inject = [ promise(Foo1) ] as const
+  constructor(private _foo1: Promise<Foo1>) {}
+}) // positive test #1
+
+await new Injector().bind(FooX).inject(class {
+  static $inject = [ promise(FooX) ] as const
+  constructor(private _fooX: Promise<FooX>) {}
+}) // positive test #2
+
+// our class requires Foo1: even if FooX extends Foo1 this should not match
+expectError(new Injector().bind(FooX).inject(class {
+  static $inject = [ promise(Foo1) ] as const
+  constructor(private _foo1: Promise<Foo1>) {}
+})) // negative test #1
+
+// our class requires FooX: Foo1 is a superclass, therefore not assignable
+expectError(new Injector().bind(Foo1).inject(class {
+  static $inject = [ promise(FooX) ] as const
+  constructor(private _fooX: Promise<FooX>) {}
+})) // negative test #2
+
 /* ========================================================================== *
  * discrepancies between "$inject" and constructor parameters                 *
  * ========================================================================== */
@@ -253,6 +301,27 @@ expectError(new Injector().bind('test', Foo1)
     .bind(class {
       static $inject = [ 'test' ] as const
       constructor(private _foo1: FooX) {}
+    }))
+
+// "$inject" types matches exactly constructor with promised bindings
+new Injector().bind('test', FooX)
+    .bind(class {
+      static $inject = [ promise('test') ] as const
+      constructor(private _fooX: Promise<FooX>) {}
+    })
+
+// "$inject" provides subclass of constructor argument with promised bindings
+new Injector().bind('test', FooX)
+    .bind(class {
+      static $inject = [ promise('test') ] as const
+      constructor(private _foo1: Promise<Foo1>) {}
+    })
+
+// "$inject" provides superclass of constructor argument with promised bindings
+expectError(new Injector().bind('test', Foo1)
+    .bind(class {
+      static $inject = [ promise('test') ] as const
+      constructor(private _foo1: Promise<FooX>) {}
     }))
 
 /* ========================================================================== *
