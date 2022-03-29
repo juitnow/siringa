@@ -313,6 +313,11 @@ annotated with _JSDoc_).
   Create a new instance of the given injectable (a _class_) injecting all its
   required dependencies
 
+* `injections.make(factory: Factory): ReturnType<Factory>` \
+   Simple utility method to invoke the factory with the correct `Injections`
+   and return its result. This can be used to alleviate issues when top-level
+   await is not available.
+
 #### Sub Injectors
 
 * `injections.injector(): Injector` \
