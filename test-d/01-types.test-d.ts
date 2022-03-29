@@ -350,6 +350,26 @@ expectType<Injector<typeof Foo1, { foo2: Foo2, foo3: Foo3 }>>(new Injector()
 expectError(new Injector().create(FooX, () => new Foo1()))
 expectError(new Injector().create(Foo1, () => new class extends AFoo {}))
 
+/* ========================================================================== */
+
+expectType<AFoo>(new Injector()
+    .bind(Foo1)
+    .bind('test', Foo2)
+    .make((registry) => {
+      expectType<Injections<typeof Foo1, { 'test' : Foo2 }>>(registry)
+      return new class extends AFoo {}
+    }))
+
+expectType<Promise<Foo3>>(new Injector()
+    .bind(Foo1)
+    .bind('foo2', Foo2)
+    .make(async (registry) => {
+      expectType<Injections<typeof Foo1, { 'foo2' : Foo2 }>>(registry)
+      const _foo1 = await registry.get(Foo1)
+      const _foo2 = await registry.get('foo2')
+      return new Foo3(_foo1, _foo2)
+    }))
+
 /* ========================================================================== *
  * instances                                                                  *
  * ========================================================================== */
