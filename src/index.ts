@@ -371,16 +371,34 @@ export class Injector<
     return this.#get(binding, [])
   }
 
+  /* INJECTIONS ============================================================= */
+
   /**
    * Create a new instance of the specified `Injectable`, providing all
    * necessary injections.
    *
    * @param injectable The constructor of the instance to create.
    */
-  async inject<I extends Injectable<Components, Provisions>>(
+  inject<I extends Injectable<Components, Provisions>>(
     injectable: I & CheckInjectable<I, Components, Provisions>,
   ): Promise<InstanceType<I>> {
     return this.#inject(injectable, [])
+  }
+
+  /**
+   * Simple utility method to invoke the factory with the correct `Injections`
+   * and return its result.
+   *
+   * This can be used to alleviate issues when top-level await is not available.
+   */
+  make<F extends Factory<Components, Provisions>>(
+    factory: F,
+  ): ReturnType<F> {
+    return factory({
+      get: (component: any) => this.#get(component, []),
+      inject: async (injectable: any) => this.#inject(injectable, []),
+      injector: () => this.injector(),
+    })
   }
 
   /* CHILD INJECTORS ======================================================== */
