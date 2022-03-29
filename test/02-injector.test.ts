@@ -59,6 +59,24 @@ describe('Injector', () => {
     expect(instance._s.count).to.equal(2)
   })
 
+  it('should use a factory without binding it', async () => {
+    const instance = await new Injector()
+        .bind(Foo)
+        .bind('foo', Foo)
+        .make(async (injections) => {
+          const one = await injections.get(Foo)
+          const two = await injections.get('foo')
+          const three = await injections.inject(Foo)
+          const four = await injections.injector().get(Foo)
+          return { _c: one, _s: two, _x: three, _i: four }
+        })
+
+    expect(instance._c.count).to.equal(1)
+    expect(instance._s.count).to.equal(2)
+    expect(instance._x.count).to.equal(3)
+    expect(instance._i.count).to.equal(1) // from parent injector
+  })
+
   it('should bind some components', async () => {
     const injector = new Injector()
         .bind(Foo)
