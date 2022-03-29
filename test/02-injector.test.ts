@@ -266,6 +266,50 @@ describe('Injector', () => {
     ])
   })
 
+  it('should work with primitives', async () => {
+    await new Injector().use('string', 'bar').inject(class {
+      static $inject = [ 'string' ] as const
+
+      constructor(param: string) {
+        expect(param).to.equal('bar')
+      }
+    })
+
+    await new Injector().use('null', null).inject(class {
+      static $inject = [ 'null' ] as const
+
+      constructor(param: null) {
+        expect(param).to.be.null
+      }
+    })
+
+    await new Injector().use('undefined', undefined).inject(class {
+      static $inject = [ 'undefined' ] as const
+
+      constructor(param: undefined) {
+        expect(param).to.be.undefined
+      }
+    })
+
+    const s = await new Injector().use('string', 'bar').inject(class {
+      static $inject = [ promise('string') ] as const
+      constructor(public param: Promise<string>) {}
+    })
+    expect(await s.param).to.equal('bar')
+
+    const n = await new Injector().use('null', null).inject(class {
+      static $inject = [ promise('null') ] as const
+      constructor(public param: Promise<null>) {}
+    })
+    expect(await n.param).to.be.null
+
+    const u = await new Injector().use('undefined', undefined).inject(class {
+      static $inject = [ promise('undefined') ] as const
+      constructor(public param: Promise<undefined>) {}
+    })
+    expect(await u.param).to.be.undefined
+  })
+
   it('should fail when recursively resolving the same binding', async () => {
     await expect(new Injector()
         .create('foo', async (injections) => {

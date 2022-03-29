@@ -267,7 +267,8 @@ export class Injector<
     })
 
     const injections = promises ? (await Promise.all(promises)).map((i) => {
-      return promisedBinding in i ? this.#get(i[promisedBinding], stack) : i
+      return i && (typeof i === 'object') && (i[promisedBinding]) ?
+          this.#get(i[promisedBinding], stack) : i
     }) : []
 
     // eslint-disable-next-line new-cap
