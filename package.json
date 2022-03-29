@@ -1,6 +1,6 @@
 {
   "name": "siringa",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple type-checking injection library for Typescript",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
