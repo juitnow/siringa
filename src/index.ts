@@ -188,8 +188,8 @@ export interface Injectable<
  * instances, and creating sub-`Injector`s.
  */
 export interface Injections<
-  Components extends Constructor,
-  Provisions extends Record<string, any>,
+  Components extends Constructor = never,
+  Provisions extends Record<string, any> = {},
 > {
   /** Get a _bound_ instance from an `Injector`. */
   get<C extends Components>(component: C): Promise<InstanceType<C>>
