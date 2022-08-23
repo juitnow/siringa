@@ -1,8 +1,7 @@
-import { Injector, promise } from '../src/index'
-import chai, { expect } from 'chai'
-import chap from 'chai-as-promised'
+import './.setup'
 
-chai.use(chap)
+import { Injector, promise } from '../src/index'
+import { expect } from 'chai'
 
 let count = 0
 

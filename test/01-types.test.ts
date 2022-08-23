@@ -1,3 +1,5 @@
+import './.setup'
+
 import { log } from '@plugjs/plug'
 import { readdirSync } from 'fs'
 import { relative } from 'path'
