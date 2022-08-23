@@ -296,8 +296,8 @@ export class Injector<
 
   // Overloaded implementation
   bind(
-    binding: Binding,
-    maybeInjectable?: Injectable<Components, Provisions>,
+      binding: Binding,
+      maybeInjectable?: Injectable<Components, Provisions>,
   ): this {
     const injectable = maybeInjectable ? maybeInjectable :
         binding as Injectable<Components, Provisions>
@@ -322,8 +322,8 @@ export class Injector<
 
   // Overloaded implementation
   create(
-    binding: Binding,
-    factory: Factory<Components, Provisions>,
+      binding: Binding,
+      factory: Factory<Components, Provisions>,
   ): this {
     this.#factories.set(binding, async (stack) => factory({
       get: (component: any) => this.#get(component, stack),
@@ -350,8 +350,8 @@ export class Injector<
 
   // Overloaded implementation
   use(
-    binding: Binding,
-    instance: any,
+      binding: Binding,
+      instance: any,
   ): this {
     this.#promises.set(binding, Promise.resolve(instance))
     return this
@@ -367,7 +367,7 @@ export class Injector<
 
   // Overloaded implementation
   async get<B extends Binding>(
-    binding: B,
+      binding: B,
   ): Promise<any> {
     return this.#get(binding, [])
   }
@@ -381,7 +381,7 @@ export class Injector<
    * @param injectable The constructor of the instance to create.
    */
   inject<I extends Injectable<Components, Provisions>>(
-    injectable: I & CheckInjectable<I, Components, Provisions>,
+      injectable: I & CheckInjectable<I, Components, Provisions>,
   ): Promise<InstanceType<I>> {
     return this.#inject(injectable, [])
   }
@@ -393,7 +393,7 @@ export class Injector<
    * This can be used to alleviate issues when top-level await is not available.
    */
   make<F extends Factory<Components, Provisions>>(
-    factory: F,
+      factory: F,
   ): ReturnType<F> {
     return factory({
       get: (component: any) => this.#get(component, []),
