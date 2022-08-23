@@ -1,5 +1,4 @@
-/* eslint-disable no-console */
-
+import { log } from '@plugjs/plug'
 import { readdirSync } from 'fs'
 import { relative } from 'path'
 import tsd from 'tsd'
@@ -7,16 +6,18 @@ import tsd from 'tsd'
 describe('Types test', () => {
   const testFiles = readdirSync('test-d', { withFileTypes: true })
       .filter((dirent) => dirent.isFile())
-      .map(({ name }) => `test-d/${name}`)
+      .map(({ name }) => name)
       .filter((name) => /\.test-d\.ts$/.test(name))
 
   it(`should run ${testFiles.length} types test`, async function() {
     this.timeout(10000)
     this.slow(10000)
 
-    const diagnostics = await tsd({
-      cwd: process.cwd(),
-      typingsFile: 'src/index.ts',
+    // some issues with TSD being imported in ESM/CJS mode...
+    const _tsd = ((tsd as any).default || tsd) as typeof tsd
+    const diagnostics = await _tsd({
+      cwd: process.cwd() + '/test-d',
+      typingsFile: '../src/index.ts',
       testFiles,
     })
 
@@ -41,7 +42,8 @@ describe('Types test', () => {
         // emit our "__file_marker__" logs (niceties)
         .filter((diag) => {
           if (/__file_marker__/.test(diag.message) && (diag.severity === 'warning')) {
-            console.log(`    \u001b[34m\u2731\u001b[90m ${diag.fileName}\u001b[0m`)
+            log(`\u001b[34m\u2731\u001b[90m ${diag.fileName}\u001b[0m`)
+            return false
           } else {
             return true
           }
@@ -49,13 +51,14 @@ describe('Types test', () => {
         // write out warnings and filter them
         .filter((diag) => {
           if (diag.severity != 'warning') return true
-          console.log(`    \u001b[33m\u2731\u001b[0m ${diag.message}`)
-          console.log(`      \u001b[90m  in ./${diag.fileName}:${diag.line}\u001b[0m`)
+          log.warn(`\u001b[33m\u2731\u001b[0m ${diag.message}`)
+          log.warn(`  \u001b[90m  in ./${diag.fileName}:${diag.line}\u001b[0m`)
+          return false
         })
         // write out errors and count them
         .filter((diag) => {
-          console.log(`    \u001b[31m\u2716\u001b[0m ${diag.message}`)
-          console.log(`      \u001b[90m  in ./${diag.fileName}:${diag.line}\u001b[0m`)
+          log.error(`\u001b[31m\u2716\u001b[0m ${diag.message}`)
+          log.error(`  \u001b[90m  in ./${diag.fileName}:${diag.line}\u001b[0m`)
           errors ++
         })
 
