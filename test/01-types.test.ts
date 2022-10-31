@@ -1,14 +1,13 @@
-import './.setup'
+import { readdirSync } from 'node:fs'
+import { relative } from 'node:path'
 
 import { log } from '@plugjs/plug'
-import { readdirSync } from 'fs'
-import { relative } from 'path'
 import tsd from 'tsd'
 
 describe('Types test', () => {
   const testFiles = readdirSync('test-d', { withFileTypes: true })
       .filter((dirent) => dirent.isFile())
-      .map(({ name }) => name)
+      .map(({ name }) => `test-d/${name}`)
       .filter((name) => /\.test-d\.ts$/.test(name))
 
   it(`should run ${testFiles.length} types test`, async function() {
@@ -18,8 +17,8 @@ describe('Types test', () => {
     // some issues with TSD being imported in ESM/CJS mode...
     const _tsd = ((tsd as any).default || tsd) as typeof tsd
     const diagnostics = await _tsd({
-      cwd: process.cwd() + '/test-d',
-      typingsFile: '../src/index.ts',
+      cwd: process.cwd(), // + '/test-d',
+      typingsFile: 'src/index.ts',
       testFiles,
     })
 
