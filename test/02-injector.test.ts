@@ -1,7 +1,6 @@
-import './.setup'
+import { expect } from 'chai'
 
 import { Injector, promise } from '../src/index'
-import { expect } from 'chai'
 
 let count = 0
 
