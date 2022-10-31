@@ -1,5 +1,8 @@
 import { expectError, expectType, printType } from 'tsd'
-import { Injector, Injections, promise } from '../src'
+
+import { Injector, promise } from '../src'
+
+import type { Injections } from '../src'
 
 printType('__file_marker__')
 
@@ -11,6 +14,8 @@ printType('__file_marker__')
  * - AFoo: abstract class                                                     *
  * ========================================================================== */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 class Foo1 {
   constructor() {}
   foo1(): void {}
@@ -18,13 +23,13 @@ class Foo1 {
 
 class Foo2 {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
   foo2(): void {}
 }
 
 class Foo3 {
   static $inject = [ Foo1, Foo2 ] as const
-  constructor(private _foo1: Foo1, private _foo2: Foo2) {}
+  constructor(_foo1: Foo1, _foo2: Foo2) {}
   foo3(): void {}
 }
 
@@ -80,27 +85,27 @@ expectError(new Injector().bind(Foo2, <any> null).inject(Foo3))
 
 new Injector().bind(Foo1).bind(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test
 
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = [ Foo1 ] // as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // no "as const"
 
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = [ 123 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // invalid injection key (number)
 
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = true
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // invalid $inject (not an array)
 
 expectError(new Injector().bind(Foo1).bind(class {
   // static $inject = [ Foo1 ]
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // missing "$inject"
 
 /* ========================================================================== *
@@ -109,96 +114,96 @@ expectError(new Injector().bind(Foo1).bind(class {
 
 new Injector().bind(Foo1).bind(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #1
 
 new Injector().bind(FooX).bind(class {
   static $inject = [ FooX ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 }) // positive test #2
 
 // our class requires Foo1: even if FooX extends Foo1 this should not match
 expectError(new Injector().bind(FooX).bind(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // negative test #1
 
 // our class requires FooX: Foo1 is a superclass, therefore not assignable
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = [ FooX ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 })) // negative test #2
 
 // again but with "inject()"
 
 await new Injector().bind(Foo1).inject(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #1
 
 await new Injector().bind(FooX).inject(class {
   static $inject = [ FooX ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 }) // positive test #2
 
 // our class requires Foo1: even if FooX extends Foo1 this should not match
 expectError(new Injector().bind(FooX).inject(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 })) // negative test #1
 
 // our class requires FooX: Foo1 is a superclass, therefore not assignable
 expectError(new Injector().bind(Foo1).inject(class {
   static $inject = [ FooX ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 })) // negative test #2
 
 // promised bindings
 
 new Injector().bind(Foo1).bind(class {
   static $inject = [ promise(Foo1) ] as const
-  constructor(private _foo1: Promise<Foo1>) {}
+  constructor(_foo1: Promise<Foo1>) {}
 }) // positive test #1
 
 new Injector().bind(FooX).bind(class {
   static $inject = [ promise(FooX) ] as const
-  constructor(private _fooX: Promise<FooX>) {}
+  constructor(_fooX: Promise<FooX>) {}
 }) // positive test #2
 
 // our class requires Foo1: even if FooX extends Foo1 this should not match
 expectError(new Injector().bind(FooX).bind(class {
   static $inject = [ promise(Foo1) ] as const
-  constructor(private _foo1: Promise<Foo1>) {}
+  constructor(_foo1: Promise<Foo1>) {}
 })) // negative test #1
 
 // our class requires FooX: Foo1 is a superclass, therefore not assignable
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = [ promise(FooX) ] as const
-  constructor(private _fooX: Promise<FooX>) {}
+  constructor(_fooX: Promise<FooX>) {}
 })) // negative test #2
 
 // promised bindings with "inject()"
 
 await new Injector().bind(Foo1).inject(class {
   static $inject = [ promise(Foo1) ] as const
-  constructor(private _foo1: Promise<Foo1>) {}
+  constructor(_foo1: Promise<Foo1>) {}
 }) // positive test #1
 
 await new Injector().bind(FooX).inject(class {
   static $inject = [ promise(FooX) ] as const
-  constructor(private _fooX: Promise<FooX>) {}
+  constructor(_fooX: Promise<FooX>) {}
 }) // positive test #2
 
 // our class requires Foo1: even if FooX extends Foo1 this should not match
 expectError(new Injector().bind(FooX).inject(class {
   static $inject = [ promise(Foo1) ] as const
-  constructor(private _foo1: Promise<Foo1>) {}
+  constructor(_foo1: Promise<Foo1>) {}
 })) // negative test #1
 
 // our class requires FooX: Foo1 is a superclass, therefore not assignable
 expectError(new Injector().bind(Foo1).inject(class {
   static $inject = [ promise(FooX) ] as const
-  constructor(private _fooX: Promise<FooX>) {}
+  constructor(_fooX: Promise<FooX>) {}
 })) // negative test #2
 
 /* ========================================================================== *
@@ -208,19 +213,19 @@ expectError(new Injector().bind(Foo1).inject(class {
 // normal injection, all good (only using Foo1)
 new Injector().bind(Foo1).bind(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #1
 
 // constructor requires a superclass of what "$inject" specifies, all good
 new Injector().bind(FooX).bind(class {
   static $inject = [ FooX ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #2
 
 // constructor requires a subclass of what "$inject" specifies, this should fail
 expectError(new Injector().bind(Foo1).bind(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 }))
 
 // again, with "inject(...)"
@@ -228,19 +233,19 @@ expectError(new Injector().bind(Foo1).bind(class {
 // normal injection, all good (only using Foo1)
 await new Injector().bind(Foo1).inject(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #1
 
 // constructor requires a superclass of what "$inject" specifies, all good
 await new Injector().bind(FooX).inject(class {
   static $inject = [ FooX ] as const
-  constructor(private _foo1: Foo1) {}
+  constructor(_foo1: Foo1) {}
 }) // positive test #2
 
 // constructor requires a subclass of what "$inject" specifies, this should fail
 expectError(new Injector().bind(Foo1).inject(class {
   static $inject = [ Foo1 ] as const
-  constructor(private _fooX: FooX) {}
+  constructor(_fooX: FooX) {}
 }))
 
 
@@ -265,63 +270,63 @@ expectType<Injector<typeof Foo1 | typeof Foo2, { test: Foo3 }>>(
 new Injector().bind(Foo1).bind('test', Foo2)
     .bind(class {
       static $inject = [ Foo1, 'test' ] as const
-      constructor(private _foo1: Foo1, private _foo2: Foo2) {}
+      constructor(_foo1: Foo1, _foo2: Foo2) {}
     })
 
 // "$inject" specifies a string not bound
 expectError(new Injector().bind(Foo1).bind('test', Foo2)
     .bind(class {
       static $inject = [ Foo1, 'foobar' ] as const
-      constructor(private _foo1: Foo1, private _foo2: Foo2) {}
+      constructor(_foo1: Foo1, _foo2: Foo2) {}
     }))
 
 // constructor specifies wrong type from "$inject"
 expectError(new Injector().bind(Foo1).bind('test', Foo2)
     .bind(class {
       static $inject = [ Foo1, 'test' ] as const
-      constructor(private _foo1: Foo1, private _fooX: FooX) {}
+      constructor(_foo1: Foo1, _fooX: FooX) {}
     }))
 
 // "$inject" types matches exactly constructor
 new Injector().bind('test', FooX)
     .bind(class {
       static $inject = [ 'test' ] as const
-      constructor(private _fooX: FooX) {}
+      constructor(_fooX: FooX) {}
     })
 
 // "$inject" provides subclass of constructor argument
 new Injector().bind('test', FooX)
     .bind(class {
       static $inject = [ 'test' ] as const
-      constructor(private _foo1: Foo1) {}
+      constructor(_foo1: Foo1) {}
     })
 
 // "$inject" provides superclass of constructor argument
 expectError(new Injector().bind('test', Foo1)
     .bind(class {
       static $inject = [ 'test' ] as const
-      constructor(private _foo1: FooX) {}
+      constructor(_foo1: FooX) {}
     }))
 
 // "$inject" types matches exactly constructor with promised bindings
 new Injector().bind('test', FooX)
     .bind(class {
       static $inject = [ promise('test') ] as const
-      constructor(private _fooX: Promise<FooX>) {}
+      constructor(_fooX: Promise<FooX>) {}
     })
 
 // "$inject" provides subclass of constructor argument with promised bindings
 new Injector().bind('test', FooX)
     .bind(class {
       static $inject = [ promise('test') ] as const
-      constructor(private _foo1: Promise<Foo1>) {}
+      constructor(_foo1: Promise<Foo1>) {}
     })
 
 // "$inject" provides superclass of constructor argument with promised bindings
 expectError(new Injector().bind('test', Foo1)
     .bind(class {
       static $inject = [ promise('test') ] as const
-      constructor(private _foo1: Promise<FooX>) {}
+      constructor(_foo1: Promise<FooX>) {}
     }))
 
 /* ========================================================================== *
