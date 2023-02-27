@@ -19,15 +19,22 @@
   },
   "scripts": {
     "build": "plug --force-esm",
+    "coverage": "plug coverage",
     "dev": "npx nodemon -e ts -x plug -w src -w test -w test-d",
-    "lint": "plug --force-esm lint"
+    "lint": "plug --force-esm lint",
+    "test": "plug test",
+    "transpile": "plug transpile"
   },
   "author": "Juit Developers <developers@juit.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@juitnow/build": "github:juitnow/build",
-    "tsd": "^0.24.1",
-    "typescript": "^4.8.4"
+    "@plugjs/build": "^0.2.2",
+    "@plugjs/tsd": "^0.2.1",
+    "@types/chai": "^4.3.4",
+    "@types/chai-as-promised": "^7.1.5",
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "typescript": "^4.9.5"
   },
   "directories": {
     "test": "test"
