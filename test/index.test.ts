@@ -1,8 +1,3 @@
-import chai, { expect } from 'chai'
-import chap from 'chai-as-promised'
-
-chai.use(chap)
-
 import { Injector, promise } from '../src/index'
 
 let count = 0
@@ -28,23 +23,23 @@ describe('Injector', () => {
         })
 
     const c1 = await injector.get(Foo)
-    expect(c1.count).to.equal(1)
+    expect(c1.count).toEqual(1)
 
     const s1 = await injector.get('foo')
-    expect(s1.count).to.equal(2)
+    expect(s1.count).toEqual(2)
 
     const c2 = await injector.get(Foo)
     const s2 = await injector.get('foo')
 
-    expect(c2.count).to.equal(1)
-    expect(s2.count).to.equal(2)
+    expect(c2.count).toEqual(1)
+    expect(s2.count).toEqual(2)
 
-    expect(c2).to.equal(c1)
-    expect(s2).to.equal(s1)
+    expect(c2).toEqual(c1)
+    expect(s2).toEqual(s1)
 
     const bar = await injector.get('bar')
-    expect(bar._c).to.equal(c1)
-    expect(bar._s).to.equal(s1)
+    expect(bar._c).toEqual(c1)
+    expect(bar._s).toEqual(s1)
   })
 
   it('should inject a component without binding it', async () => {
@@ -56,8 +51,8 @@ describe('Injector', () => {
           constructor(public _c: Foo, public _s: Foo) {}
         })
 
-    expect(instance._c.count).to.equal(1)
-    expect(instance._s.count).to.equal(2)
+    expect(instance._c.count).toEqual(1)
+    expect(instance._s.count).toEqual(2)
   })
 
   it('should use a factory without binding it', async () => {
@@ -72,10 +67,10 @@ describe('Injector', () => {
           return { _c: one, _s: two, _x: three, _i: four }
         })
 
-    expect(instance._c.count).to.equal(1)
-    expect(instance._s.count).to.equal(2)
-    expect(instance._x.count).to.equal(3)
-    expect(instance._i.count).to.equal(1) // from parent injector
+    expect(instance._c.count).toEqual(1)
+    expect(instance._s.count).toEqual(2)
+    expect(instance._x.count).toEqual(3)
+    expect(instance._i.count).toEqual(1) // from parent injector
   })
 
   it('should bind some components', async () => {
@@ -88,23 +83,23 @@ describe('Injector', () => {
         })
 
     const c1 = await injector.get(Foo)
-    expect(c1.count).to.equal(1)
+    expect(c1.count).toEqual(1)
 
     const s1 = await injector.get('foo')
-    expect(s1.count).to.equal(2)
+    expect(s1.count).toEqual(2)
 
     const c2 = await injector.get(Foo)
     const s2 = await injector.get('foo')
 
-    expect(c2.count).to.equal(1)
-    expect(s2.count).to.equal(2)
+    expect(c2.count).toEqual(1)
+    expect(s2.count).toEqual(2)
 
-    expect(c2).to.equal(c1)
-    expect(s2).to.equal(s1)
+    expect(c2).toEqual(c1)
+    expect(s2).toEqual(s1)
 
     const bar = await injector.get('bar')
-    expect(bar._c).to.equal(c1)
-    expect(bar._s).to.equal(s1)
+    expect(bar._c).toEqual(c1)
+    expect(bar._s).toEqual(s1)
   })
 
   it('should use a factory to instantiate injectables', async () => {
@@ -117,23 +112,23 @@ describe('Injector', () => {
         }(await injections.get(Foo), await injections.get('foo')))
 
     const c1 = await injector.get(Foo)
-    expect(c1.count).to.equal(1)
+    expect(c1.count).toEqual(1)
 
     const s1 = await injector.get('foo')
-    expect(s1.count).to.equal(2)
+    expect(s1.count).toEqual(2)
 
     const c2 = await injector.get(Foo)
     const s2 = await injector.get('foo')
 
-    expect(c2.count).to.equal(1)
-    expect(s2.count).to.equal(2)
+    expect(c2.count).toEqual(1)
+    expect(s2.count).toEqual(2)
 
-    expect(c2).to.equal(c1)
-    expect(s2).to.equal(s1)
+    expect(c2).toEqual(c1)
+    expect(s2).toEqual(s1)
 
     const bar = await injector.get('bar')
-    expect(bar._c).to.equal(c1)
-    expect(bar._s).to.equal(s1)
+    expect(bar._c).toEqual(c1)
+    expect(bar._s).toEqual(s1)
   })
 
   it('should use pre-existing instances', async () => {
@@ -146,23 +141,23 @@ describe('Injector', () => {
         })
 
     const c1 = await injector.get(Foo)
-    expect(c1.count).to.equal(1)
+    expect(c1.count).toEqual(1)
 
     const s1 = await injector.get('foo')
-    expect(s1.count).to.equal(2)
+    expect(s1.count).toEqual(2)
 
     const c2 = await injector.get(Foo)
     const s2 = await injector.get('foo')
 
-    expect(c2.count).to.equal(1)
-    expect(s2.count).to.equal(2)
+    expect(c2.count).toEqual(1)
+    expect(s2.count).toEqual(2)
 
-    expect(c2).to.equal(c1)
-    expect(s2).to.equal(s1)
+    expect(c2).toEqual(c1)
+    expect(s2).toEqual(s1)
 
     const bar = await injector.get('bar')
-    expect(bar._c).to.equal(c1)
-    expect(bar._s).to.equal(s1)
+    expect(bar._c).toEqual(c1)
+    expect(bar._s).toEqual(s1)
   })
 
   it('should shield factories from injectors', async () => {
@@ -174,13 +169,13 @@ describe('Injector', () => {
           const s = await injections.get('foo')
           const i = await injections.inject(Foo)
 
-          expect(c.count).to.equal(1)
-          expect(s.count).to.equal(2)
-          expect(i.count).to.equal(3)
+          expect(c.count).toEqual(1)
+          expect(s.count).toEqual(2)
+          expect(i.count).toEqual(3)
 
-          expect((<any> injections).bind).to.be.undefined
-          expect((<any> injections).create).to.be.undefined
-          expect((<any> injections).use).to.be.undefined
+          expect((<any> injections).bind).toBeUndefined()
+          expect((<any> injections).create).toBeUndefined()
+          expect((<any> injections).use).toBeUndefined()
 
           return { c, s, i }
         })
@@ -189,12 +184,12 @@ describe('Injector', () => {
     const s = await injector.get('foo')
     const x = await injector.get('bar')
 
-    expect(c.count).to.equal(1)
-    expect(s.count).to.equal(2)
+    expect(c.count).toEqual(1)
+    expect(s.count).toEqual(2)
 
-    expect(x.c).to.equal(c)
-    expect(x.s).to.equal(s)
-    expect(x.i.count).to.equal(3)
+    expect(x.c).toEqual(c)
+    expect(x.s).toEqual(s)
+    expect(x.i.count).toEqual(3)
   })
 
   it('should inject promised bindings', async () => {
@@ -211,7 +206,7 @@ describe('Injector', () => {
           static $inject = [ promise(Foo) ] as const
           constructor(public foo: Promise<Foo>) {
             calls.push('construct')
-            expect(foo).to.be.a('promise')
+            expect(foo).toBeInstanceOf(Promise)
           }
         })
 
@@ -219,12 +214,13 @@ describe('Injector', () => {
     const injected = await injectedPromise
 
     calls.push('injected')
-    expect(injected.foo).to.be.a('promise')
+    expect(injected.foo).toBeInstanceOf(Promise)
 
     const foo = await injected.foo
-    expect(foo).to.be.instanceOf(Foo).eql({ count: 1 })
+    expect(foo).toBeInstanceOf(Foo)
+    expect(foo).toEqual(jasmine.objectContaining({ count: 1 }))
 
-    expect(calls).to.eql([
+    expect(calls).toEqual([
       'injecting',
       'construct',
       'injected',
@@ -246,7 +242,7 @@ describe('Injector', () => {
           static $inject = [ promise('test') ] as const
           constructor(public foo: Promise<Foo>) {
             calls.push('construct')
-            expect(foo).to.be.a('promise')
+            expect(foo).toBeInstanceOf(Promise)
           }
         })
 
@@ -254,12 +250,13 @@ describe('Injector', () => {
     const injected = await injectedPromise
 
     calls.push('injected')
-    expect(injected.foo).to.be.a('promise')
+    expect(injected.foo).toBeInstanceOf(Promise)
 
     const foo = await injected.foo
-    expect(foo).to.be.instanceOf(Foo).eql({ count: 1 })
+    expect(foo).toBeInstanceOf(Foo)
+    expect(foo).toEqual(jasmine.objectContaining({ count: 1 }))
 
-    expect(calls).to.eql([
+    expect(calls).toEqual([
       'injecting',
       'construct',
       'injected',
@@ -272,7 +269,7 @@ describe('Injector', () => {
       static $inject = [ 'string' ] as const
 
       constructor(param: string) {
-        expect(param).to.equal('bar')
+        expect(param).toEqual('bar')
       }
     })
 
@@ -280,7 +277,7 @@ describe('Injector', () => {
       static $inject = [ 'null' ] as const
 
       constructor(param: null) {
-        expect(param).to.be.null
+        expect(param).toBeNull()
       }
     })
 
@@ -288,7 +285,7 @@ describe('Injector', () => {
       static $inject = [ 'undefined' ] as const
 
       constructor(param: undefined) {
-        expect(param).to.be.undefined
+        expect(param).toBeUndefined()
       }
     })
 
@@ -296,32 +293,32 @@ describe('Injector', () => {
       static $inject = [ promise('string') ] as const
       constructor(public param: Promise<string>) {}
     })
-    expect(await s.param).to.equal('bar')
+    expect(await s.param).toEqual('bar')
 
     const n = await new Injector().use('null', null).inject(class {
       static $inject = [ promise('null') ] as const
       constructor(public param: Promise<null>) {}
     })
-    expect(await n.param).to.be.null
+    expect(await n.param).toBeNull()
 
     const u = await new Injector().use('undefined', undefined).inject(class {
       static $inject = [ promise('undefined') ] as const
       constructor(public param: Promise<undefined>) {}
     })
-    expect(await u.param).to.be.undefined
+    expect(await u.param).toBeUndefined()
   })
 
   it('should fail when recursively resolving the same binding', async () => {
-    await expect(new Injector()
+    await expectAsync(new Injector()
         .create('foo', async (injections) => {
           await (<any> injections).get('foo')
-        }).get('foo')).to.be.rejectedWith('Recursion detected injecting "foo"')
+        }).get('foo')).toBeRejectedWithError('Recursion detected injecting "foo"')
 
-    await expect(new Injector()
+    await expectAsync(new Injector()
         .create(Foo, async (injections) => {
           await (<any> injections).get(Foo)
           return <any> null
-        }).get(Foo)).to.be.rejectedWith('Recursion detected injecting [class Foo]')
+        }).get(Foo)).toBeRejectedWithError('Recursion detected injecting [class Foo]')
   })
 
   it('should successfully use parent injectors', async () => {
@@ -330,26 +327,26 @@ describe('Injector', () => {
         .use('foo', 'bar')
         .create(Foo, async (injections) => {
           const instance = await injections.get(Foo)
-          expect(instance.count).to.equal(1)
+          expect(instance.count).toEqual(1)
 
           const string = await injections.get('foo')
-          expect(string).to.equal('bar')
+          expect(string).toEqual('bar')
 
           return new Foo()
         })
 
     const childInstance = await child.get(Foo)
-    expect(childInstance.count).to.equal(2)
+    expect(childInstance.count).toEqual(2)
 
-    expect(await child.get('foo')).to.equal('bar')
-    expect(await child.get('test')).to.equal('parent')
+    expect(await child.get('foo')).toEqual('bar')
+    expect(await child.get('test')).toEqual('parent')
 
     const parentInstance = await parent.get(Foo)
-    expect(parentInstance.count).to.equal(1)
+    expect(parentInstance.count).toEqual(1)
 
-    await expect(parent.get(<any> 'foo'))
-        .to.be.rejectedWith('Unable to resolve binding "foo"')
-    expect(await parent.get('test')).to.equal('parent')
+    await expectAsync(parent.get(<any> 'foo'))
+        .toBeRejectedWithError('Unable to resolve binding "foo"')
+    expect(await parent.get('test')).toEqual('parent')
   })
 
   it('should successfully override a parent injector binding', async () => {
@@ -357,10 +354,10 @@ describe('Injector', () => {
     const child = parent.injector().bind(Foo)
 
     const childInstance = await child.get(Foo)
-    expect(childInstance.count).to.equal(1)
+    expect(childInstance.count).toEqual(1)
 
     const parentInstance = await parent.get(Foo)
-    expect(parentInstance.count).to.equal(2)
+    expect(parentInstance.count).toEqual(2)
   })
 
   it('should successfully construct child injectors', async () => {
@@ -371,23 +368,23 @@ describe('Injector', () => {
     })
 
     const parentInstance = await parent.get(Foo)
-    expect(parentInstance.count).to.equal(1)
+    expect(parentInstance.count).toEqual(1)
 
-    await expect(parent.get(<any> 'foo'))
-        .to.be.rejectedWith('Unable to resolve binding "foo"')
-    expect(await parent.get('test')).to.equal('parent')
+    await expectAsync(parent.get(<any> 'foo'))
+        .toBeRejectedWithError('Unable to resolve binding "foo"')
+    expect(await parent.get('test')).toEqual('parent')
 
     const childInstance = await child?.get(Foo)
-    expect(childInstance?.count).to.equal(2)
+    expect(childInstance?.count).toEqual(2)
 
-    expect(await child?.get('foo')).to.equal('bar')
-    expect(await child?.get('test')).to.equal('parent')
+    expect(await child?.get('foo')).toEqual('bar')
+    expect(await child?.get('test')).toEqual('parent')
   })
 
   it('should give us nice erros', async () => {
     const injector = new Injector<any, any>()
 
-    await expect(injector.get(<any> Foo)).to.be.rejectedWith('Unable to resolve binding [class Foo]')
-    await expect(injector.get(<any> 'foo')).to.be.rejectedWith('Unable to resolve binding "foo"')
+    await expectAsync(injector.get(<any> Foo)).toBeRejectedWithError('Unable to resolve binding [class Foo]')
+    await expectAsync(injector.get(<any> 'foo')).toBeRejectedWithError('Unable to resolve binding "foo"')
   })
 })
