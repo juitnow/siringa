@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": [ "mocha", "node", "chai-as-promised", "chai-exclude" ],
+    "types": [ "jasmine", "node" ],
     "rootDir": "..",
   },
   "include": [ "." ],
