@@ -1,4 +1,7 @@
-import { expect } from 'chai'
+import chai, { expect } from 'chai'
+import chap from 'chai-as-promised'
+
+chai.use(chap)
 
 import { Injector, promise } from '../src/index'
 
