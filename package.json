@@ -28,8 +28,8 @@
   "author": "Juit Developers <developers@juit.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@plugjs/build": "^0.2.2",
-    "@plugjs/tsd": "^0.2.1",
+    "@plugjs/build": "^0.2.4",
+    "@plugjs/tsd": "^0.2.3",
     "typescript": "^4.9.5"
   },
   "directories": {
