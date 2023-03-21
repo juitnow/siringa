@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": [ "jasmine", "node" ],
     "rootDir": "..",
+    "noUncheckedIndexedAccess": false,
   },
   "include": [ "." ],
 }
