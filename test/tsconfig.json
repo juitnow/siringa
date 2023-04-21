@@ -1,9 +1,8 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": [ "jasmine", "node" ],
+    "types": [ "@plugjs/expect5/globals", "node" ],
     "rootDir": "..",
-    "noUncheckedIndexedAccess": false,
   },
   "include": [ "." ],
 }

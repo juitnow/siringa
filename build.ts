@@ -13,7 +13,6 @@ const localBuild = build({
   /** Lint all sources (including `test-d` stuff) */
   async lint_tsd(): Promise<void> {
     banner('Linting type defintion test sources')
-
     await find('**/*.test-d.ts', { directory: 'test-d' }).eslint()
   },
 })

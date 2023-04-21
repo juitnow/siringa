@@ -11,7 +11,7 @@ class Foo {
 }
 
 describe('Injector', () => {
-  beforeEach(() => count = 0)
+  beforeEach(() => void (count = 0))
 
   it('should bind some components', async () => {
     const injector = new Injector()
@@ -218,7 +218,7 @@ describe('Injector', () => {
 
     const foo = await injected.foo
     expect(foo).toBeInstanceOf(Foo)
-    expect(foo).toEqual(jasmine.objectContaining({ count: 1 }))
+    expect(foo).toInclude({ count: 1 })
 
     expect(calls).toEqual([
       'injecting',
@@ -254,7 +254,7 @@ describe('Injector', () => {
 
     const foo = await injected.foo
     expect(foo).toBeInstanceOf(Foo)
-    expect(foo).toEqual(jasmine.objectContaining({ count: 1 }))
+    expect(foo).toInclude({ count: 1 })
 
     expect(calls).toEqual([
       'injecting',
@@ -309,12 +309,12 @@ describe('Injector', () => {
   })
 
   it('should fail when recursively resolving the same binding', async () => {
-    await expectAsync(new Injector()
+    await expect(new Injector()
         .create('foo', async (injections) => {
           await (<any> injections).get('foo')
         }).get('foo')).toBeRejectedWithError('Recursion detected injecting "foo"')
 
-    await expectAsync(new Injector()
+    await expect(new Injector()
         .create(Foo, async (injections) => {
           await (<any> injections).get(Foo)
           return <any> null
@@ -344,7 +344,7 @@ describe('Injector', () => {
     const parentInstance = await parent.get(Foo)
     expect(parentInstance.count).toEqual(1)
 
-    await expectAsync(parent.get(<any> 'foo'))
+    await expect(parent.get(<any> 'foo'))
         .toBeRejectedWithError('Unable to resolve binding "foo"')
     expect(await parent.get('test')).toEqual('parent')
   })
@@ -370,7 +370,7 @@ describe('Injector', () => {
     const parentInstance = await parent.get(Foo)
     expect(parentInstance.count).toEqual(1)
 
-    await expectAsync(parent.get(<any> 'foo'))
+    await expect(parent.get(<any> 'foo'))
         .toBeRejectedWithError('Unable to resolve binding "foo"')
     expect(await parent.get('test')).toEqual('parent')
 
@@ -384,7 +384,7 @@ describe('Injector', () => {
   it('should give us nice erros', async () => {
     const injector = new Injector<any, any>()
 
-    await expectAsync(injector.get(<any> Foo)).toBeRejectedWithError('Unable to resolve binding [class Foo]')
-    await expectAsync(injector.get(<any> 'foo')).toBeRejectedWithError('Unable to resolve binding "foo"')
+    await expect(injector.get(<any> Foo)).toBeRejectedWithError('Unable to resolve binding [class Foo]')
+    await expect(injector.get(<any> 'foo')).toBeRejectedWithError('Unable to resolve binding "foo"')
   })
 })
