@@ -14,7 +14,6 @@ printType('__file_marker__')
  * - AFoo: abstract class                                                     *
  * ========================================================================== */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 class Foo1 {
   constructor() {}
@@ -337,7 +336,7 @@ expectType<Injector<typeof Foo1 | typeof AFoo, { test: Foo2 }>>(new Injector()
     .bind(Foo1)
     .bind('test', Foo2)
     .create(AFoo, (registry) => {
-      expectType<Injections<typeof Foo1, { 'test' : Foo2 }>>(registry)
+      expectType<Injections<typeof Foo1, { 'test': Foo2 }>>(registry)
       return new class extends AFoo {}
     }))
 
@@ -345,7 +344,7 @@ expectType<Injector<typeof Foo1, { foo2: Foo2, foo3: Foo3 }>>(new Injector()
     .bind(Foo1)
     .bind('foo2', Foo2)
     .create('foo3', async (registry) => {
-      expectType<Injections<typeof Foo1, { 'foo2' : Foo2 }>>(registry)
+      expectType<Injections<typeof Foo1, { 'foo2': Foo2 }>>(registry)
       const _foo1 = await registry.get(Foo1)
       const _foo2 = await registry.get('foo2')
       return new Foo3(_foo1, _foo2)
@@ -361,7 +360,7 @@ expectType<AFoo>(new Injector()
     .bind(Foo1)
     .bind('test', Foo2)
     .make((registry) => {
-      expectType<Injections<typeof Foo1, { 'test' : Foo2 }>>(registry)
+      expectType<Injections<typeof Foo1, { 'test': Foo2 }>>(registry)
       return new class extends AFoo {}
     }))
 
@@ -369,7 +368,7 @@ expectType<Promise<Foo3>>(new Injector()
     .bind(Foo1)
     .bind('foo2', Foo2)
     .make(async (registry) => {
-      expectType<Injections<typeof Foo1, { 'foo2' : Foo2 }>>(registry)
+      expectType<Injections<typeof Foo1, { 'foo2': Foo2 }>>(registry)
       const _foo1 = await registry.get(Foo1)
       const _foo2 = await registry.get('foo2')
       return new Foo3(_foo1, _foo2)
@@ -380,7 +379,7 @@ expectType<Promise<Foo3>>(new Injector()
  * ========================================================================== */
 
 expectType<Injector<typeof Foo1, {}>>(new Injector().use(Foo1, new Foo1()))
-expectType<Injector<never, { 'test' : Foo1 }>>(new Injector().use('test', new Foo1()))
+expectType<Injector<never, { 'test': Foo1 }>>(new Injector().use('test', new Foo1()))
 
 // invalid class for component (subclass or disjoint class)
 expectError(new Injector().use(FooX, new Foo1()))
