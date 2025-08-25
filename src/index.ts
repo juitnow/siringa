@@ -34,30 +34,30 @@ type CheckInject<
 
   // if "$inject" is a single-element tuple, check that that this element is
   // actually included in the list of components
-  Inject extends readonly [ infer I1 ] ?
-    I1 extends PromisedBinding<infer I2> ?
-      I2 extends keyof Provisions ?
-        readonly [ PromisedBinding<I2> ] :
-      I2 extends Extract<Components, I2> ?
-        readonly [ PromisedBinding<I2> ] :
-      readonly [ PromisedBinding<never> ] :
-    I1 extends keyof Provisions ?
-      readonly [ I1 ] :
-    I1 extends Extract<Components, I1> ?
-      readonly [ I1 ] :
-    readonly [ never ] :
+    Inject extends readonly [ infer I1 ] ?
+      I1 extends PromisedBinding<infer I2> ?
+        I2 extends keyof Provisions ?
+          readonly [ PromisedBinding<I2> ] :
+          I2 extends Extract<Components, I2> ?
+            readonly [ PromisedBinding<I2> ] :
+            readonly [ PromisedBinding<never> ] :
+        I1 extends keyof Provisions ?
+          readonly [ I1 ] :
+          I1 extends Extract<Components, I1> ?
+            readonly [ I1 ] :
+            readonly [ never ] :
 
-  // if "$inject" is a multi-element tuple, recurse (twice) by cheking the first
-  // element as a single-element tuple (see above), and the remaining members.
-  Inject extends readonly [ infer I1, ...infer I2 ] ?
-    readonly [
-      ...CheckInject<[ I1 ], Components, Provisions>,
-      ...CheckInject<I2, Components, Provisions>,
-    ] :
+    // if "$inject" is a multi-element tuple, recurse (twice) by cheking the first
+    // element as a single-element tuple (see above), and the remaining members.
+      Inject extends readonly [ infer I1, ...infer I2 ] ?
+        readonly [
+          ...CheckInject<[ I1 ], Components, Provisions>,
+          ...CheckInject<I2, Components, Provisions>,
+        ] :
 
-  // "$inject" here is something else (likely, an array but not "as const")
-  // so we want to fail by re-declaring it as a tuple
-  readonly [ Components | keyof Provisions, ...(Components | keyof Provisions)[] ]
+      // "$inject" here is something else (likely, an array but not "as const")
+      // so we want to fail by re-declaring it as a tuple
+        readonly [ Components | keyof Provisions, ...(Components | keyof Provisions)[] ]
 
 /* ========================================================================== */
 
@@ -74,30 +74,30 @@ type MapInject<
     readonly [] :
 
   // "$inject" is a single-element tuple
-  Inject extends readonly [ infer I1 ] ?
-    I1 extends PromisedBinding<infer I2> ?
+    Inject extends readonly [ infer I1 ] ?
+      I1 extends PromisedBinding<infer I2> ?
       // promised bindings
-      I2 extends keyof Provisions ?
-        readonly [ Promise<Provisions[I2]> ] :
-      I2 extends Constructor ?
-        readonly [ Promise<InstanceType<I2>> ] :
-      readonly [ never ] :
-    // resolved (non promised) bindings
-    I1 extends keyof Provisions ?
-      readonly [ Provisions[I1] ] :
-    I1 extends Constructor ?
-      readonly [ InstanceType<I1> ] :
-    readonly [ never ] :
+        I2 extends keyof Provisions ?
+          readonly [ Promise<Provisions[I2]> ] :
+          I2 extends Constructor ?
+            readonly [ Promise<InstanceType<I2>> ] :
+            readonly [ never ] :
+      // resolved (non promised) bindings
+        I1 extends keyof Provisions ?
+          readonly [ Provisions[I1] ] :
+          I1 extends Constructor ?
+            readonly [ InstanceType<I1> ] :
+            readonly [ never ] :
 
-  // "$inject" is a multi-element tuple (recurse)
-  Inject extends readonly [ infer I1, ...infer I2 ] ?
-    readonly [
-      ...MapInject<[ I1 ], Provisions>,
-      ...MapInject<I2, Provisions>,
-    ] :
+    // "$inject" is a multi-element tuple (recurse)
+      Inject extends readonly [ infer I1, ...infer I2 ] ?
+        readonly [
+          ...MapInject<[ I1 ], Provisions>,
+          ...MapInject<I2, Provisions>,
+        ] :
 
-  // "$inject" is something else
-  readonly [ never ]
+      // "$inject" is something else
+        readonly [ never ]
 
 /* ========================================================================== */
 
@@ -119,11 +119,11 @@ type CheckInjectable<
 
   // If "$inject" is not specified, the only valid injector is one with
   // an empty (zero arguments) constructor
-  I extends new () => any ?
-    I :
+    I extends new () => any ?
+      I :
 
-  // Anything else requires "$inject" to be present
-  { $inject: InjectTuple<Components, Provisions> }
+    // Anything else requires "$inject" to be present
+      { $inject: InjectTuple<Components, Provisions> }
 
 /* ========================================================================== */
 
@@ -143,9 +143,9 @@ type ExtendProvisions<
   T, // the new type associated with the provision key
 > = {
   [ key in P | keyof Provisions ]:
-    key extends P ?
-      UnrollPromise<T> :
-      Provisions[key]
+  key extends P ?
+    UnrollPromise<T> :
+    Provisions[key]
 }
 
 /* ========================================================================== *
@@ -268,7 +268,7 @@ export class Injector<
 
     const injections = promises ? (await Promise.all(promises)).map((i) => {
       return i && (typeof i === 'object') && (i[promisedBinding]) ?
-          this.#get(i[promisedBinding], stack) : i
+        this.#get(i[promisedBinding], stack) : i
     }) : []
 
     // eslint-disable-next-line new-cap
@@ -300,7 +300,7 @@ export class Injector<
       maybeInjectable?: Injectable<Components, Provisions>,
   ): this {
     const injectable = maybeInjectable ? maybeInjectable :
-        binding as Injectable<Components, Provisions>
+      binding as Injectable<Components, Provisions>
 
     this.#factories.set(binding, async (stack) => this.#inject(injectable, stack))
     return this
