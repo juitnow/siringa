@@ -334,6 +334,22 @@ export class Injector<
     return this
   }
 
+  /* ENVIRONMENT VARIABLES ================================================== */
+
+  /** Provision an environment variable. */
+  env<E extends string>(
+      variable: E,
+      defaultValue?: string,
+  ): Injector<Components, ExtendProvisions<Provisions, E, string>> {
+    const value = globalThis.process?.env?.[variable] || defaultValue
+    if (! value) {
+      throw new Error(`Environment variable "${variable}" is not defined`)
+    } else {
+      this.#promises.set(variable, Promise.resolve(value))
+    }
+    return this
+  }
+
   /* INSTANCES ============================================================== */
 
   /** Use the given instance binding it to to the given `Constructor`. */

@@ -308,6 +308,28 @@ describe('Injector', () => {
     expect(await u.param).toBeUndefined()
   })
 
+  it('should inject variables from the environment', async () => {
+    expect(() => new Injector().env('TEST_INJECTOR'))
+        .toThrowError('Environment variable "TEST_INJECTOR" is not defined')
+
+    const injector = new Injector().env('TEST_INJECTOR', 'default_value')
+    const value = await injector.get('TEST_INJECTOR')
+    expect(value).toEqual('default_value')
+
+    process.env.TEST_INJECTOR = 'injected_value'
+    try {
+      const injector = new Injector().env('TEST_INJECTOR')
+      const value = await injector.get('TEST_INJECTOR')
+      expect(value).toEqual('injected_value')
+
+      const injector2 = new Injector().env('TEST_INJECTOR', 'default_value')
+      const value2 = await injector2.get('TEST_INJECTOR')
+      expect(value2).toEqual('injected_value')
+    } finally {
+      delete process.env.TEST_INJECTOR
+    }
+  })
+
   it('should fail when recursively resolving the same binding', async () => {
     await expect(new Injector()
         .create('foo', async (injections) => {

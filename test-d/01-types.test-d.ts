@@ -375,6 +375,15 @@ expectType<Promise<Foo3>>(new Injector()
     }))
 
 /* ========================================================================== *
+ * env vars                                                                   *
+ * ========================================================================== */
+
+expectType<Injector<typeof Foo1, { test: Foo2, FOOBAR: string }>>(new Injector()
+    .bind(Foo1)
+    .bind('test', Foo2)
+    .env('FOOBAR', 'injected_value'))
+
+/* ========================================================================== *
  * instances                                                                  *
  * ========================================================================== */
 
@@ -389,10 +398,11 @@ expectError(new Injector().use(Foo1, new class extends AFoo {}))
  * getting instances                                                          *
  * ========================================================================== */
 
-const injector = new Injector().bind(Foo1).bind('test', Foo2)
+const injector = new Injector().bind(Foo1).bind('test', Foo2).env('FOOBAR')
 
 expectType<Foo1>(await injector.get(Foo1))
 expectType<Foo2>(await injector.get('test'))
+expectType<string>(await injector.get('FOOBAR'))
 
 expectError(injector.get(Foo2))
 expectError(injector.get('foobar'))
