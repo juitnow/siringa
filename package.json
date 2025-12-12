@@ -35,6 +35,14 @@
   "directories": {
     "test": "test"
   },
+  "homepage": "https://github.com/juitnow/siringa#readme",
+  "bugs": {
+    "url": "https://github.com/juitnow/siringa/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/juitnow/siringa.git"
+  },
   "files": [
     "*.md",
     "dist/",
