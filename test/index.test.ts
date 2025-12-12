@@ -324,7 +324,20 @@ describe('Injector', () => {
 
       const injector2 = new Injector().env('TEST_INJECTOR', 'default_value')
       const value2 = await injector2.get('TEST_INJECTOR')
+
       expect(value2).toEqual('injected_value')
+
+      const injector3 = new Injector()
+          .env('TEST_INJECTOR')
+          .bind('TEST_INSTANCE', class {
+            static $inject = [ 'TEST_INJECTOR' ] as const
+            constructor(public value: string) {
+              expect(this.value).toEqual('injected_value')
+            }
+          })
+
+      const instance = await injector3.get('TEST_INSTANCE')
+      expect(instance.value).toEqual('injected_value')
     } finally {
       delete process.env.TEST_INJECTOR
     }
