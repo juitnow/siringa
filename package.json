@@ -1,6 +1,6 @@
 {
   "name": "siringa",
-  "version": "0.4.48",
+  "version": "0.4.49",
   "description": "Simple type-checking injection library for Typescript",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -28,8 +28,8 @@
   "author": "Juit Developers <developers@juit.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@plugjs/build": "^0.7.14",
-    "@plugjs/tsd": "^0.7.15"
+    "@plugjs/build": "^0.7.16",
+    "@plugjs/tsd": "^0.7.18"
   },
   "directories": {
     "test": "test"
